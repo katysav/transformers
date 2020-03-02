@@ -539,13 +539,12 @@ class PdtbProcessor(DataProcessor):
 
     def get_labels(self):
         """See base class."""
-        return ["Contingency.Pragmatic condition", "Temporal.Synchrony", 
-                "Comparison.Concession", "Contingency.Condition", 
-                "Contingency.Pragmatic cause", "Comparison.Contrast",
-                "Expansion.Alternative", "Contingency.Cause", 
-                "Expansion.Restatement", "Temporal.Asynchronous", 
-                "Expansion.List", "Expansion.Instantiation", 
-                "Expansion.Conjunction"]
+        return ['Temporal.Asynchronous', 'Contingency.Cause',
+                'Expansion.Alternative', 'Temporal.Synchrony',
+                'Contingency.Pragmatic cause', 'Expansion.List',
+                'Expansion.Conjunction', 'Expansion.Restatement',
+                'Expansion.Instantiation', 'Comparison.Concession',
+                'Comparison.Contrast']
 
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
