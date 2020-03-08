@@ -537,6 +537,10 @@ class PdtbProcessor(DataProcessor):
         """See base class."""
         return self._create_examples(self._read_tsv(os.path.join(data_dir, "pdtb_dev.txt")), "dev")
 
+    def get_test_examples(self, data_dir):
+        """See base class."""
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "pdtb_test.txt")), "test")
+
     def get_labels(self):
         """See base class."""
         return ['Temporal.Asynchronous', 'Contingency.Cause',
