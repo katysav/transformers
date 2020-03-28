@@ -533,9 +533,11 @@ class PdtbProcessor(DataProcessor):
         logger.info("LOOKING AT {}".format(os.path.join(data_dir, "pdtb_train.txt")))
         return self._create_examples(self._read_tsv(os.path.join(data_dir, "pdtb_train.txt")), "train")
 
+    '''
     def get_dev_examples(self, data_dir):
         """See base class."""
         return self._create_examples(self._read_tsv(os.path.join(data_dir, "pdtb_dev.txt")), "dev")
+    '''
 
     def get_test_examples(self, data_dir):
         """See base class."""
@@ -543,12 +545,13 @@ class PdtbProcessor(DataProcessor):
 
     def get_labels(self):
         """See base class."""
-        return ['Temporal.Asynchronous', 'Contingency.Cause',
-                'Expansion.Alternative', 'Temporal.Synchrony',
-                'Contingency.Pragmatic cause', 'Expansion.List',
-                'Expansion.Conjunction', 'Expansion.Restatement',
-                'Expansion.Instantiation', 'Comparison.Concession',
-                'Comparison.Contrast']
+        #return ['Temporal.Asynchronous', 'Contingency.Cause',
+        #        'Expansion.Alternative', 'Temporal.Synchrony',
+        #        'Contingency.Pragmatic cause', 'Expansion.List',
+        #        'Expansion.Conjunction', 'Expansion.Restatement',
+        #        'Expansion.Instantiation', 'Comparison.Concession',
+        #        'Comparison.Contrast']
+        return ['Rel', 'NoRel']
 
     def _create_examples(self, lines, set_type):
         """Creates examples for the training and dev sets."""
@@ -574,7 +577,7 @@ glue_tasks_num_labels = {
     "qnli": 2,
     "rte": 2,
     "wnli": 2,
-    "pdtb": 13
+    "pdtb": 2
 }
 
 glue_processors = {
