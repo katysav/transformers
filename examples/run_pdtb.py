@@ -278,9 +278,9 @@ def train(args, train_dataset, model, model_config, tokenizer):
                             # print('Gradients are disabled for:', name)
 
                 if args.fp16:
-                    torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), args.max_grad_norm)
+                    total_norm = torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), args.max_grad_norm)
                 else:
-                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
+                    total_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), args.max_grad_norm)
 
                 # log stuff
                 if args.local_rank in [-1, 0] and args.train_logging_steps > 0 and global_step % args.train_logging_steps == 0:
