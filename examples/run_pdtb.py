@@ -57,6 +57,7 @@ from transformers import (
     XLNetForSequenceClassification,
     XLNetTokenizer,
     get_linear_schedule_with_warmup,
+    get_constant_schedule,
 )
 from transformers import glue_compute_metrics as compute_metrics
 from transformers import glue_convert_examples_to_features as convert_examples_to_features
