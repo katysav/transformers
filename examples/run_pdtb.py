@@ -150,9 +150,10 @@ def train(args, train_dataset, model, model_config, tokenizer):
     ]
 
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
-    scheduler = get_linear_schedule_with_warmup(
-        optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=t_total
-    )
+    #scheduler = get_linear_schedule_with_warmup(
+    #    optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=t_total
+    #)
+    scheduler = get_constant_schedule(optimizer)
 
     # Check if saved optimizer or scheduler states exist
     if os.path.isfile(os.path.join(args.model_name_or_path, "optimizer.pt")) and os.path.isfile(
