@@ -221,7 +221,7 @@ def train(args, train_dataset, model, model_config, tokenizer):
     # Only evaluate when single GPU and not torch.distributed otherwise metrics may not average well
     if args.local_rank in [-1, 0]:
         if args.evaluate_during_training:
-            results = evaluate(args, model, tokenizer, dev_set=True)
+            results = evaluate(args, model, tokenizer)
             for key, value in results.items():
                 tb_writer.add_scalar(
                     'eval_{}'.format(key), value, global_step)
@@ -390,7 +390,7 @@ def train(args, train_dataset, model, model_config, tokenizer):
     return global_step, tr_loss / global_step
 
 
-def evaluate(args, model, tokenizer, dev_set=True, test_set=False, prefix=""):
+def evaluate(args, model, tokenizer, prefix=""):
     # Loop to handle MNLI double evaluation (matched, mis-matched)
     #eval_task_names = ("mnli", "mnli-mm") if args.task_name == "mnli" else (args.task_name,)
     #eval_outputs_dirs = (args.output_dir, args.output_dir + "-MM") if args.task_name == "mnli" else (args.output_dir,)
@@ -400,7 +400,7 @@ def evaluate(args, model, tokenizer, dev_set=True, test_set=False, prefix=""):
 
     results = {}
     for eval_task, eval_output_dir in zip(eval_task_names, eval_outputs_dirs):
-        eval_dataset = load_and_cache_examples(args, eval_task, tokenizer, test_set=test_set)
+        eval_dataset = load_and_cache_examples(args, eval_task, tokenizer, evaluate=True)
 
         if not os.path.exists(eval_output_dir) and args.local_rank in [-1, 0]:
             os.makedirs(eval_output_dir)
@@ -452,13 +452,6 @@ def evaluate(args, model, tokenizer, dev_set=True, test_set=False, prefix=""):
         result = compute_metrics(eval_task, preds, out_label_ids)
         results.update(result)
 
-        if dev_set:
-            output_eval_file = os.path.join(eval_output_dir, prefix, "eval_results.txt")
-        elif test_set:
-            output_eval_file = os.path.join(eval_output_dir, prefix, "test_results.txt")
-        else:
-            raise ValueError("Either dev_set or test_set must be true.")
-
         output_eval_file = os.path.join(eval_output_dir, prefix, "eval_results.txt")
         with open(output_eval_file, "w") as writer:
             logger.info("***** Eval results {} *****".format(prefix))
@@ -469,24 +462,12 @@ def evaluate(args, model, tokenizer, dev_set=True, test_set=False, prefix=""):
     return results
 
 
-def load_and_cache_examples(args, task, tokenizer, dev_set=False, test_set=False):
-    assert ((dev_set ^ test_set) or not (dev_set or test_set))  # only one of them should be true or both false
-
-    if args.local_rank not in [-1, 0] and not (dev_set or test_set):
+def load_and_cache_examples(args, task, tokenizer, evaluate=False):
+    if args.local_rank not in [-1, 0] and not evaluate:
         torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
 
     processor = processors[task]()
     output_mode = output_modes[task]
-
-    # Load data features from cache or dataset file
-    if dev_set:
-        split = 'dev'
-    elif test_set:
-        split = 'test'
-    else:
-        split = 'train'
-
-
     # Load data features from cache or dataset file
     cached_features_file = os.path.join(
         args.data_dir,
@@ -506,14 +487,9 @@ def load_and_cache_examples(args, task, tokenizer, dev_set=False, test_set=False
         if task in ["mnli", "mnli-mm"] and args.model_type in ["roberta", "xlmroberta"]:
             # HACK(label indices are swapped in RoBERTa pretrained model)
             label_list[1], label_list[2] = label_list[2], label_list[1]
-
-        if dev_set:
-            examples = processor.get_dev_examples(args.data_dir)
-        elif test_set:
-            examples = processor.get_test_examples(args.data_dir)
-        else:
-            examples = processor.get_train_examples(args.data_dir)
-
+        examples = (
+            processor.get_dev_examples(args.data_dir) if evaluate else processor.get_train_examples(args.data_dir)
+        )
         features = convert_examples_to_features(
             examples,
             tokenizer,
@@ -617,8 +593,6 @@ def main():
         "--do_train", action="store_true", help="Whether to run training.")
     parser.add_argument(
         "--do_eval", action="store_true", help="Whether to run eval on the dev set.")
-    parser.add_argument(
-        "--do_test", action="store_true", help="Whether to run eval on the test set.")
     parser.add_argument(
         "--evaluate_during_training", action="store_true", help="Run evaluation during training at each logging step.",
     )
@@ -779,7 +753,7 @@ def main():
 
     # Training
     if args.do_train:
-        train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, dev_set=False, test_set=False)
+        train_dataset = load_and_cache_examples(args, args.task_name, tokenizer, evaluate=False)
         global_step, tr_loss = train(args, train_dataset, model, config, tokenizer)
         logger.info(" global_step = %s, average loss = %s", global_step, tr_loss)
 
@@ -832,27 +806,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-'''
-pip install --upgrade wandb
-wandb login 4c18e42414bd3de79634d3730e10572644f47105
-
-# Init wandb
-import wandb
-wandb.init(project="pdtb")
-
- Model instantiation code ...
-# Log metrics with wandb
-wandb.watch(model)
- Model train/evaluate code ...
-model.train()
-for batch_idx, (data, target) in enumerate(train_loader)
-    if batch_idx % args.log_interval == 0:
-        wandb.log({"Test Accuracy": correct / total, "Test Loss": loss})
-
-# Save model to wandb
-torch.save(model.state_dict(), os.path.join(wandb.run.dir, 'model.pt'))
-
-'''
-
 
