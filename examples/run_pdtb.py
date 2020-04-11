@@ -226,7 +226,7 @@ def train(args, train_dataset, model, model_config, tokenizer):
                 tb_writer.add_scalar(
                     'eval_{}'.format(key), value, global_step)
                 # log to wandb
-                # wandb.log({f'eval_{key}': value}, step=0)
+                wandb.log({f'eval_{key}': value}, step=0)
 
         # write to tensorboard
         tb_writer.add_scalar('lr', scheduler.get_lr()[0], global_step)
