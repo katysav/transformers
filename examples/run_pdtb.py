@@ -340,7 +340,7 @@ def train(args, train_dataset, model, model_config, tokenizer):
                             eval_key = "eval_{}".format(key)
                             logs[eval_key] = value
                             # log to wandb
-                            wandb.log({'eval_key': value}, step=0)
+                            wandb.log({eval_key: value}, step=global_step)
 
                     loss_scalar = (tr_loss - logging_loss) / args.logging_steps
                     learning_rate_scalar = scheduler.get_lr()[0]
