@@ -56,8 +56,10 @@ from transformers import (
     XLNetConfig,
     XLNetForSequenceClassification,
     XLNetTokenizer,
-    get_linear_schedule_with_warmup,
     get_constant_schedule,
+    get_linear_schedule_with_warmup,
+    get_constant_schedule_with_warmup,
+    get_cosine_schedule_with_warmup
 )
 from transformers import glue_compute_metrics as compute_metrics
 from transformers import glue_convert_examples_to_features as convert_examples_to_features
@@ -151,10 +153,21 @@ def train(args, train_dataset, model, model_config, tokenizer):
     ]
 
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
-    #scheduler = get_linear_schedule_with_warmup(
-    #    optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=t_total
-    #)
-    scheduler = get_constant_schedule(optimizer)
+    
+    if args.scheduler == 'constant':
+            scheduler = get_constant_schedule(optimizer)
+    elif args.scheduler == 'linear_warmup':
+        scheduler = get_linear_schedule_with_warmup(
+            optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=t_total
+        )
+    elif args.scheduler == 'constant_warmup':
+        scheduler = get_constant_schedule_with_warmup(
+            optimizer, num_warmup_steps=args.warmup_steps
+        )
+    elif args.scheduler == 'cosine_warmup':
+        scheduler = get_cosine_schedule_with_warmup(
+            optimizer, num_warmup_steps=args.warmup_steps, num_training_steps=t_total
+        )
 
     # Check if saved optimizer or scheduler states exist
     if os.path.isfile(os.path.join(args.model_name_or_path, "optimizer.pt")) and os.path.isfile(
@@ -659,6 +672,11 @@ def main():
     parser.add_argument("--local_rank", type=int, default=-1, help="For distributed training: local_rank")
     parser.add_argument("--server_ip", type=str, default="", help="For distant debugging.")
     parser.add_argument("--server_port", type=str, default="", help="For distant debugging.")
+    parser.add_argument(
+        "--scheduler", type=str,
+        choices = ['constant', 'constant_warmup', 'linear_warmup', 'cosine_warmup'], 
+        default="constant",
+        help='Choose a scheduler for the optimizer. Possible choices: constant, constant_warmup, linear_warmup, cosine_warmup')
     args = parser.parse_args()
 
     if (
