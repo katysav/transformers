@@ -76,6 +76,10 @@ if _has_sklearn:
             return {"acc": simple_accuracy(preds, labels)}
         elif task_name == "pdtb":
             return {"acc": simple_accuracy(preds, labels)}
+        elif task_name == "pdtbrel":
+            return {"acc": simple_accuracy(preds, labels)}
+        elif task_name == "pdtbsemrel":
+            return {"acc": simple_accuracy(preds, labels)}
         else:
             raise KeyError(task_name)
 
