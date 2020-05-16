@@ -506,7 +506,7 @@ class WnliProcessor(DataProcessor):
         """Creates examples for the training and dev sets."""
         examples = []
         for (i, line) in enumerate(lines):
-            if i == 0
+            if i == 0:
                 continue
             guid = "%s-%s" % (set_type, line[0])
             text_a = line[1]
@@ -571,17 +571,17 @@ class PdtbRelProcessor(DataProcessor):
     def get_train_examples(self, data_dir):
         """See base class."""
         logger.info("LOOKING AT {}".format(os.path.join(data_dir, "pdtb_train.txt")))
-        return self._create_examples(self._read_tsv(os.path.join(data_dir, "pdtb_rel_train.txt")), "train")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "pdtb_train_coarse.txt")), "train")
     
     def get_dev_examples(self, data_dir):
         """See base class."""
         logger.info("LOOKING AT {}".format(os.path.join(data_dir, "pdtb_dev.txt")))
-        return self._create_examples(self._read_tsv(os.path.join(data_dir, "pdtb_rel_dev.txt")), "dev")
+        return self._create_examples(self._read_tsv(os.path.join(data_dir, "pdtb_dev_coarse.txt")), "dev")
     
     def get_labels(self):
         """See base class."""
-        return ['Explicit', 'Implicit',
-                #'EntRel', 'AltLex', 
+        return ['Expansion', 'Comparison',
+                'Contingency', 'Temporal',
                 'NoRel']
 
     def _create_examples(self, lines, set_type):
@@ -591,9 +591,9 @@ class PdtbRelProcessor(DataProcessor):
             if i == 0:
                 continue
             guid = "%s-%s" % (set_type, i)
-            text_a = line[4]
-            text_b = line[5]
-            label = line[2]
+            text_a = line[6]
+            text_b = line[7]
+            label = line[4]
             examples.append(InputExample(guid=guid, text_a=text_a, text_b=text_b, label=label))
         return examples
 
@@ -686,7 +686,7 @@ glue_output_modes = {
     "qnli": "classification",
     "rte": "classification",
     "wnli": "classification",
-    "pdtb": "classification"
+    "pdtb": "classification",
     "pdtbrel": "classification",
     "pdtbsemrel": "classification"
 }
